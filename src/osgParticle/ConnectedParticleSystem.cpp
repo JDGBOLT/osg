@@ -42,8 +42,7 @@ Particle* ConnectedParticleSystem::createParticle(const Particle* ptemplate)
     // OSG_NOTICE<<this<< " Creating particle "<<std::endl;
 
     Particle* particle = ParticleSystem::createParticle(ptemplate);
-    // FIXME: This is broken by the change to dynamic allocated particles
-    int particleIndex = (int)(particle - _particles[0]);
+    int particleIndex = (int)(particle - &_particles[0]);
 
     if (particle)
     {
@@ -59,7 +58,7 @@ Particle* ConnectedParticleSystem::createParticle(const Particle* ptemplate)
             // OSG_NOTICE<<this<< " Connecting "<<_lastParticleCreated<<" to "<<particleIndex<<std::endl;
 
             // write up the last created particle to this new particle
-            _particles[_lastParticleCreated]->setNextParticle(particleIndex);
+            _particles[_lastParticleCreated].setNextParticle(particleIndex);
             particle->setPreviousParticle(_lastParticleCreated);
         }
 
@@ -77,7 +76,7 @@ void ConnectedParticleSystem::reuseParticle(int particleIndex)
 
     if (particleIndex<0 || particleIndex>=(int)_particles.size()) return;
 
-    Particle* particle = _particles[particleIndex];
+    Particle* particle = &_particles[particleIndex];
     int previous = particle->getPreviousParticle();
     int next = particle->getNextParticle();
 
@@ -96,12 +95,12 @@ void ConnectedParticleSystem::reuseParticle(int particleIndex)
     // the deletion of the this particle
     if (previous != Particle::INVALID_INDEX)
     {
-        _particles[previous]->setNextParticle(next);
+        _particles[previous].setNextParticle(next);
     }
 
     if (next != Particle::INVALID_INDEX)
     {
-        _particles[next]->setPreviousParticle(previous);
+        _particles[next].setPreviousParticle(previous);
     }
 
     // reset the next and previous particle entries of this particle
@@ -119,7 +118,7 @@ void ConnectedParticleSystem::drawImplementation(osg::RenderInfo& renderInfo) co
 
     osg::State& state = *renderInfo.getState();
 
-    const Particle* particle = (_startParticle != Particle::INVALID_INDEX) ? _particles[_startParticle] : 0;
+    const Particle* particle = (_startParticle != Particle::INVALID_INDEX) ? &_particles[_startParticle] : 0;
     if (!particle) return;
 
     ArrayData& ad = _bufferedArrayData[state.getContextID()];
@@ -159,7 +158,7 @@ void ConnectedParticleSystem::drawImplementation(osg::RenderInfo& renderInfo) co
             texcoords.push_back(osg::Vec2( particle->getSTexCoord(), 0.5f ));
             vertices.push_back(pos);
 
-            const Particle* nextParticle = (particle->getNextParticle() != Particle::INVALID_INDEX) ? _particles[particle->getNextParticle()] : 0;
+            const Particle* nextParticle = (particle->getNextParticle() != Particle::INVALID_INDEX) ? &_particles[particle->getNextParticle()] : 0;
             if (nextParticle)
             {
                 osg::Vec3 startDelta = nextParticle->getPosition()-pos;
@@ -171,9 +170,8 @@ void ConnectedParticleSystem::drawImplementation(osg::RenderInfo& renderInfo) co
                     i<_maxNumberOfParticlesToSkip && ((distance2<maxPixelError2) && (nextParticle->getNextParticle()!=Particle::INVALID_INDEX));
                     ++i)
                 {
-                    nextParticle = _particles[nextParticle->getNextParticle()];
+                    nextParticle = &_particles[nextParticle->getNextParticle()];
                     osg::Vec3 delta = nextParticle->getPosition()-pos;
-
                     distance2 = (delta^startDelta).length2();
                 }
             }
@@ -196,7 +194,7 @@ void ConnectedParticleSystem::drawImplementation(osg::RenderInfo& renderInfo) co
             const osg::Vec4& color = particle->getCurrentColor();
             const osg::Vec3& pos = particle->getPosition();
 
-            const Particle* nextParticle = (particle->getNextParticle() != Particle::INVALID_INDEX) ? _particles[particle->getNextParticle()] : 0;
+            const Particle* nextParticle = (particle->getNextParticle() != Particle::INVALID_INDEX) ? &_particles[particle->getNextParticle()] : 0;
 
             if (nextParticle)
             {
@@ -210,7 +208,7 @@ void ConnectedParticleSystem::drawImplementation(osg::RenderInfo& renderInfo) co
                     i<_maxNumberOfParticlesToSkip && ((distance2<maxPixelError2) && (nextParticle->getNextParticle()!=Particle::INVALID_INDEX));
                     ++i)
                 {
-                    nextParticle = _particles[nextParticle->getNextParticle()];
+                    nextParticle = &_particles[nextParticle->getNextParticle()];
                     delta = nextParticle->getPosition()-pos;
                     distance2 = (delta^startDelta).length2();
                 }
