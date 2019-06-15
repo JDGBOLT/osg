@@ -1,15 +1,7 @@
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS TRUE)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-IF(WIN32)
-    CMAKE_MINIMUM_REQUIRED(VERSION 2.4.6 FATAL_ERROR)
-ELSE(WIN32)
-    IF(APPLE)
-        CMAKE_MINIMUM_REQUIRED(VERSION 2.6.0 FATAL_ERROR)
-    ELSE(APPLE)
-        CMAKE_MINIMUM_REQUIRED(VERSION 2.4.4 FATAL_ERROR)
-    ENDIF(APPLE)
-ENDIF(WIN32)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.0 FATAL_ERROR)
 
 if(COMMAND cmake_policy)
     # Works around warnings libraries linked against that don't
@@ -36,12 +28,6 @@ if(COMMAND cmake_policy)
         cmake_policy(SET CMP0008 OLD)
     endif()
 
-    # disable autolinking to qtmain as we have our own main() functions (new in Qt 5.1)
-    if(${CMAKE_MAJOR_VERSION} GREATER 2 OR
-        (${CMAKE_MAJOR_VERSION} EQUAL 2 AND ${CMAKE_MINOR_VERSION} GREATER 8) OR
-        (${CMAKE_MAJOR_VERSION} EQUAL 2 AND ${CMAKE_MINOR_VERSION} EQUAL 8 AND ${CMAKE_PATCH_VERSION} GREATER 10))
-        cmake_policy(SET CMP0020 OLD)
-    endif()
     # nicer version check - but needs at least CMake 2.6.2? Worth upgrading the requirements?
     #if("${CMAKE_VERSION}" VERSION_GREATER 2.8.10)
     # or even easier (available in cmake-2.6)
@@ -53,12 +39,12 @@ PROJECT(OpenSceneGraph)
 
 SET(OPENSCENEGRAPH_MAJOR_VERSION 3)
 SET(OPENSCENEGRAPH_MINOR_VERSION 4)
-SET(OPENSCENEGRAPH_PATCH_VERSION 1)
-SET(OPENSCENEGRAPH_SOVERSION 130)
+SET(OPENSCENEGRAPH_PATCH_VERSION 2)
+SET(OPENSCENEGRAPH_SOVERSION 131)
 
 # set to 0 when not a release candidate, non zero means that any generated
 # git tags will be treated as release candidates of given number
-SET(OPENSCENEGRAPH_RELEASE_CANDIDATE 1)
+SET(OPENSCENEGRAPH_RELEASE_CANDIDATE 0)
 
 SET(OPENSCENEGRAPH_VERSION ${OPENSCENEGRAPH_MAJOR_VERSION}.${OPENSCENEGRAPH_MINOR_VERSION}.${OPENSCENEGRAPH_PATCH_VERSION})
 
@@ -250,15 +236,14 @@ IF(UNIX AND NOT ANDROID)
 
 ENDIF()
 
-INCLUDE_DIRECTORIES(
-    ${OpenSceneGraph_SOURCE_DIR}/include
-    ${OPENGL_INCLUDE_DIR}
-)
+INCLUDE_DIRECTORIES(${OpenSceneGraph_SOURCE_DIR}/include/)
 
 # Make the headers visible to everything
 IF(NOT ${PROJECT_BINARY_DIR} EQUAL ${PROJECT_SOURCE_DIR})
    INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include)
 ENDIF()
+
+INCLUDE_DIRECTORIES(SYSTEM ${OPENGL_INCLUDE_DIR})
 
 # Common global definitions
 #ADD_DEFINITIONS(-D)
